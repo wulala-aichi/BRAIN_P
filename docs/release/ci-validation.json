@@ -1,0 +1,12 @@
+{
+  "scope": "First public source candidate; core regression and build, not comprehensive browser/backend certification",
+  "commit": "47927e4f00369ee307f8edd777dbbf6017c42192",
+  "workflowRun": "https://github.com/wulala-aichi/BRAIN_P/actions/runs/43014460791",
+  "status": "PASS",
+  "jobs": [
+    {"os": "windows-latest", "node": 22, "tests": "33/33", "build": "PASS"},
+    {"os": "windows-latest", "node": 24, "tests": "33/33", "build": "PASS"},
+    {"os": "ubuntu-latest", "node": 22, "tests": "33/33", "build": "PASS"},
+    {"os": "ubuntu-latest", "node": 24, "tests": "33/33", "build": "PASS"}
+  ]
+}
