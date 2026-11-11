@@ -1,12 +1,70 @@
-# BRAIN_P — Mouse Atlas Studio
+# BRAIN_P
 
-Local-first mouse brain atlas, regional-data and NIfTI research visualization. **Research Beta: 3.20.0-beta.1.**
+小鼠脑图谱与NIfTI结果展示工具。支持脑区数值赋值、统计图叠加、三维显示和图版导出，可在本地离线使用。
 
-本工具用于研究结果展示和可复现图版制作，不是完整MRI分析流水线，也不是MRIcroGL的完整替代品。当前版本不用于诊断、手术定位或自动得出科学结论。
+[下载 v3.20.0-beta.1](https://github.com/wulala-aichi/BRAIN_P/releases/tag/v3.20.0-beta.1) · [使用说明](docs/使用说明.md) · [问题反馈](https://github.com/wulala-aichi/BRAIN_P/issues)
 
-## 五分钟启动 / Quick start
+## 开始使用
 
-安装Node.js 22或24，下载或克隆本仓库。在仓库目录运行：
+1. 在发布页下载 `BRAIN_P-3.20.0-beta.1-offline.zip`。
+2. 解压，用Chrome或Edge打开其中的 `index.html`。
+3. 浏览图谱，或导入自己的脑区CSV、NIfTI模板和统计图。
+
+离线版的图谱与NIfTI功能不需要安装Node或Python。发布页中的 **Source code** 是源码，运行方法见下方。
+
+## 示例
+
+### 图谱切片
+
+![Allen图谱的8个冠状切面](docs/images/atlas-coronal.png)
+
+Allen CCF分区配色，8个冠状切面。行列数、片层位置、间距、分区边界和文字标注均可调整。
+
+### 脑区数值伪彩
+
+![模拟区域数值的冠状面伪彩](docs/images/regional-values-simulated.png)
+
+蓝红色带表示模拟数值的方向和大小，灰色表示缺失。这里的数据只用于演示，不代表动物实验结果或统计显著性。[下载示例CSV](examples/SIMULATED_showcase_values.csv)；生成规则见[图片来源记录](docs/images/PROVENANCE.json)。
+
+### 三维脑区
+
+![海马结构、丘脑与尾壳核的三维显示](docs/images/atlas-3d.png)
+
+海马结构（HPF）、丘脑（TH）和尾壳核（CP）的空间位置，透明整脑外壳作为参照。图中使用Allen分区颜色和100 µm显示网格。
+
+以上图片均由软件直接导出。
+
+## 主要功能
+
+- **常规图谱**：冠状面、矢状面、水平面；单片、三视图及自定义行列；片层与间距调节。
+- **区域赋值**：按脑区缩写或Allen ID导入CSV；支持左、右、双侧赋值，色阶、色条及导入p/q阈值。
+- **NIfTI展示**：加载本地模板、统计图和掩膜；选择4D帧；显示t/Z/F、效应量或概率图，调节阈值、簇范围和平滑。
+- **三维与标注**：脑区表面、点与网络；注射位点、光纤和电极示意。
+- **出图与保存**：组合图版，导出SVG、PNG、PDF、TIFF，保存完整项目以恢复图层和设置。
+
+## 导入数据
+
+常规脑区赋值可用如下CSV：
+
+```csv
+region,value,hemisphere
+MOp,0.8,B
+MOs,-0.5,B
+ACAd,0,B
+DG,NA,B
+```
+
+`B`为双侧，`L`和`R`为单侧。`0`是有效数值，`NA`是缺失值，两者分开显示。完整格式见[使用说明](docs/使用说明.md)。
+
+NIfTI统计图需要预先配准到模板空间，并具有正确的affine和空间单位。软件提供阈值与簇范围过滤，不执行图像配准；簇大小过滤不能代替FWER/FDR校正。见[MRI使用指南](docs/MRI_ADVANCED_GUIDE_ZH.md)。
+
+## 坐标与分辨率
+
+图谱采用Allen CCF坐标：AP、DV从体积边缘起算，ML依据原始affine，**不是bregma坐标**。切片浏览间隔为0.1 mm，边界来自原10 µm annotation切面；3D表面和点标签查询约为100 µm显示近似，不能据表面网格进行精确体积测量。
+
+## 从源码运行
+
+安装Node.js 22或24，下载或克隆源码后运行：
 
 ```sh
 node scripts/test.mjs
@@ -14,67 +72,37 @@ node build.mjs
 node scripts/serve.mjs
 ```
 
-然后访问终端给出的`http://127.0.0.1:8766/`，推荐近期Chrome或Edge。也可直接打开构建后的`dist/index.html`。构建无需npm第三方包或R；带npm的环境可用`npm ci --ignore-scripts && npm run verify && npm start`。
+然后访问 `http://127.0.0.1:8766/`。也可直接打开构建后的 `dist/index.html`。
 
-前端构建会生成约87 MB单文件HTML，首次加载及内存占用可能较高。发布包/CI构建产物会另行提供；源码仓库不追踪dist。不要把未完成的CI或尚未创建的Release误认为已经验证的下载版。
-
-## 从模拟数据上手
+生成用于测试的区域CSV和NIfTI文件：
 
 ```sh
 node scripts/generate-example.mjs
 ```
 
-- 常规图谱→数据：导入`examples/generated/SIMULATED_regional_values.csv`；其中ACAd=0是有效值，DG=NA是缺失值，不应混同。
-- MRI / 统计NIfTI：加载生成的`SIMULATED_template.nii`与`SIMULATED_statistic.nii`，用原始数值阈值显示。模板是椭球体phantom，不是真实小鼠解剖；统计图不代表任何动物实验或显著性检验。
-- 调整色条/布局→导出图像→保存项目，重开项目检查复现。
-
-## 功能与边界
-
-| 功能 | Beta状态 |
-|---|---|
-| Allen冠状/矢状/水平图谱、行列/片层/间距、区域CSV赋值、0/NA、L/R/B | 核心；含自动回归 |
-| 本地NIfTI模板/统计图、4D帧、t/Z/F与概率图显示、阈值、簇范围、平滑 | 核心候选；需核对空间、统计类型、平滑和阈值顺序；不执行配准或自动校正 |
-| 2D/3D显示、色条、图版、SVG/PNG/PDF/TIFF、项目保存 | Beta；WebGL/浏览器差异仍需用户反馈 |
-| 点、ROI、网络、位点/电极/光纤示意和研究工作台 | 实验性；硬件图形不是制造商CAD或手术计划 |
-| 大型本地MERFISH/AAV数据桥 | 可选、实验性；需另装Python依赖与自行下载数据 |
-| Swanson批量科研结果页 | 不随首版分发；原页含用户真实研究数值，尚未抽成通用模块 |
-
-内置的5个项目派生网络预设已从公开数据包排除，网络/区域导入和绘图代码保留。没有上传个人研究结果、原始NIfTI/H5AD或Excel结果包。
-
-## 坐标、统计与复现
-
-- 浏览步长0.1 mm；2D边界来自原10 µm annotation切面，不代表所有展示/测量都有10 µm有效分辨率。
-- 3D网格与点标签查询约100 µm；357结构聚合，356个区域表面；不具备几何的本体细分叶节点不可直接绘制。
-- Allen CCF的AP/DV从体积边缘量起；ML依据原始affine。**不是bregma坐标**。
-- 缺失值不是0；图谱外、筛选排除、低支持和数值0须分别解释。色条范围不是统计校正。
-- NIfTI展示/簇大小过滤不等于FWER/FDR校正；导入q值时责任在上游统计。不要仅凭图像叠加推断已配准。
-- 科学处理、显示平滑及几何平滑不是同一操作。保存项目与导出元数据，记录源文件、空间、帧、阈值、掩膜、平滑和色条。
-
-详见[使用说明](docs/使用说明.md)、[界面指南](docs/新版界面上手指南.md)、[MRI指南](docs/MRI_ADVANCED_GUIDE_ZH.md)、[已知限制](docs/KNOWN_LIMITATIONS.md)。历史专题文档可能提及未随公开包提供的数据/启动脚本；以此README和公开版启动脚本为准。
+文件保存在 `examples/generated/`。其中NIfTI模板是合成椭球体，统计图为任意模拟数值；导入时选择“原始数值”阈值模式。
 
 ## 可选本地数据服务
 
-不需要它也可使用常规图谱和本地NIfTI展示。
+MERFISH和AAV模块需要自行准备源数据与Python环境，目前作为实验性功能提供。
 
 ```sh
 python -m venv .venv
-# 按系统激活.venv；然后：
+# 激活虚拟环境后：
 python -m pip install -r requirements.txt
 python tools/merfish_server.py --root /path/to/abc_atlas
 ```
 
-Windows可用`powershell -File scripts/start-local-data.ps1 -Root <你的数据目录> -Python <虚拟环境python路径>`。AAV目录通过重复`--aav-root`参数指定。服务仅监听127.0.0.1；不要暴露公网。Python依赖当前为兼容范围，不是完整跨平台锁定环境；外部数据缺失时会明确报错。
+Windows也可使用 `scripts/start-local-data.ps1`；AAV目录通过重复的 `--aav-root` 参数指定。服务只监听本机127.0.0.1，GitHub Pages不能运行这个Python服务。见[本地数据说明](docs/本地MERFISH伪彩使用说明.md)。
 
-前端核心不上传用户图像。服务在本机读取文件；完整项目JSON可能嵌入加载的数据、文件名和来源路径，分享前应检查。GitHub Pages只是静态前端，不能运行Python桥接；首版不承诺网页远程连接本机服务。
+## 文档与反馈
 
-## 开发、测试和支持
+当前版本为研究Beta。核心测试和构建已在Windows、Linux及Node 22/24上通过；可选数据服务和完整跨浏览器流程仍需测试。
 
-核心测试无R依赖；Welch参考值由独立R脚本预生成。CI配置为Windows/Linux、Node22/24的回归和构建；实际通过状态以Actions为准。公开包不包含依赖作者outputs目录的历史截图/产物回归，也不宣称所有模块完成端到端跨浏览器验证。
+[界面指南](docs/新版界面上手指南.md) · [已知限制](docs/KNOWN_LIMITATIONS.md) · [版本记录](CHANGELOG.md) · [CI记录](https://github.com/wulala-aichi/BRAIN_P/actions)
 
-请通过[Issues](https://github.com/wulala-aichi/BRAIN_P/issues)提交可复现问题，不要公开上传敏感原始数据。见[发布标准](docs/RELEASE_CRITERIA.md)、[贡献指南](CONTRIBUTING.md)、[安全说明](SECURITY.md)、[版本记录](CHANGELOG.md)。
+反馈问题时请附版本、操作系统、浏览器和复现步骤。优先使用模拟数据；完整项目可能嵌入图像、数值和来源路径，分享前请检查。
 
 ## 许可与引用
 
-原创代码由wulala-aichi按[MIT](LICENSE)授权。**MIT不覆盖第三方库、字体或Allen衍生图谱数据**。使用和再分发请分别遵守[第三方说明](THIRD_PARTY_NOTICES.md)及[图谱数据条款](DATA_LICENSES.md)。包含Allen数据资产的组合包不能理解为全部内容均允许无条件商用。
-
-请引用实际使用的Allen/软件资源；`CITATION.cff`提供本项目软件引用信息。本软件不是Allen Institute、IBL、MRIcroGL或期刊的官方产品。
+原创代码采用[MIT许可证](LICENSE)。Allen图谱数据、第三方库和字体保留各自条款，见[图谱数据许可](DATA_LICENSES.md)与[第三方说明](THIRD_PARTY_NOTICES.md)。使用图谱或软件生成论文图片时，请引用实际使用的资源；本项目引用信息见 `CITATION.cff`。

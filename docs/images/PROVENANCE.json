@@ -1,0 +1,30 @@
+{
+  "source": "BRAIN_P 3.20.0-beta.1 native PNG exporter; no image-generation model or external plotting backend",
+  "atlas": "Allen CCF 2020 / 20230630",
+  "files": [
+    {
+      "file": "atlas-coronal.png",
+      "bytes": 377876,
+      "mode": "grid"
+    },
+    {
+      "file": "regional-values-simulated.png",
+      "bytes": 446225,
+      "mode": "grid"
+    },
+    {
+      "file": "atlas-3d.png",
+      "bytes": 850904,
+      "mode": "3d"
+    }
+  ],
+  "syntheticCSV": "examples/SIMULATED_showcase_values.csv",
+  "syntheticFormula": "0.9*sin((region_order+1)*1.37), rounded to4 decimals; MOp=0; DG=NA",
+  "inference": "Synthetic regional values are illustrative only; no animals, p-values or inferred connectivity.",
+  "threeDSelection": [
+    "HPF",
+    "TH",
+    "CP"
+  ],
+  "privateStudyOutputsUsed": false
+}
