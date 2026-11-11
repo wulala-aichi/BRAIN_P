@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';import vm from 'node:vm';import assert from 'node:assert/strict';
+const ctx={window:{},structuredClone};for(const f of ['src/utils.js','src/custom-values.js','src/aav-core.js','src/merfish-core.js','src/research-core.js'])vm.runInNewContext(await fs.readFile(new URL('../'+f,import.meta.url),'utf8'),ctx);
+const A=ctx.window.AtlasAavCore,M=ctx.window.AtlasMerfishCore;
+assert.equal(A.clean().settings.enabled,false);assert.equal(A.clean().data,null);
+const data={format:'mouse-atlas-aav-overlay',voxels:[[6.8,-1.2,4,0.1,null,68,40,45]],range:[0,.5],experiment:{id:'160539283'},matched:1,displayed:1,sampling:{stride:1},query:{volume:false},qc:{injection_excluded:false},provenance:{fingerprint:'source-only'}};
+const m=A.clean({settings:{enabled:true,experiment:'160539283',resolution:100},data});
+assert.equal(JSON.stringify(A.clean(JSON.parse(JSON.stringify(m)))),JSON.stringify(m));assert.equal(A.light(m).data,null);assert.equal(A.light(m).omitted,true);
+assert.equal(JSON.stringify(ctx.window.AtlasResearchCore.clean({version:1,aav:m}).aav),JSON.stringify(m));
+assert.equal(JSON.stringify(A.range(m)),'[0,0.5]');const log=A.colour(.001,m);m.settings.scale='linear';assert.notEqual(A.colour(.001,m),log);m.settings.autoRange=false;m.settings.minimum=.1;m.settings.maximum=.4;assert.equal(JSON.stringify(A.range(m)),'[0.1,0.4]');
+const request=A.request(m.settings,{volume:false,hemisphere:'R',planes:[{orientation:'sagittal',position:1.8}]});assert.equal(request.resolution,100);assert.equal(request.hemisphere,'R');assert.equal(request.planes[0].position,1.8);assert.equal(request.excludeInjection,false);assert(!('symmetry' in request));
+const view={volume:true,planes:[]};assert(!('symmetry' in M.request({},view)));assert.equal(M.request({symmetry:'left'},view).symmetry,'left');assert.equal(M.settings({symmetry:'bad'}).symmetry,'native');
+console.log(JSON.stringify({status:'ok',checks:['disabled legacy defaults','independent AAV and MERFISH recipes','full/light project roundtrip','display-only log scaling','native hemisphere/voxel query','symmetry explicit and opt-in']}));

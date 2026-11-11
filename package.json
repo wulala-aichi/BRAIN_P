@@ -1,0 +1,16 @@
+{
+  "name": "brain-p",
+  "version": "3.20.0-beta.1",
+  "private": true,
+  "description": "Local-first mouse atlas and NIfTI research visualization workbench",
+  "license": "MIT",
+  "repository": "github:wulala-aichi/BRAIN_P",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "build": "node build.mjs",
+    "start": "node scripts/serve.mjs",
+    "example": "node scripts/generate-example.mjs",
+    "verify": "npm test && npm run build"
+  }
+}

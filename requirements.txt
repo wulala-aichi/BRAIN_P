@@ -1,0 +1,5 @@
+# Optional local-data bridge only; not needed for the atlas/NIfTI browser app.
+# Ranges are intentional until multi-platform dependency locks are validated.
+numpy>=1.26,<3
+pandas>=2.2,<3
+h5py>=3.11,<4

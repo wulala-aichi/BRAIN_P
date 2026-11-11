@@ -1,0 +1,44 @@
+{
+  "version": "3.20.0-beta.1",
+  "privateStudyOutputsIncluded": false,
+  "removedNetworkPresets": [
+    {
+      "id": "Whitesell_IC_comp_0",
+      "title": "ICA 0 · DMN"
+    },
+    {
+      "id": "Whitesell_IC_comp_1",
+      "title": "ICA 1 · 未标注"
+    },
+    {
+      "id": "Atlas_sensorimotor",
+      "title": "感觉运动代理网络"
+    },
+    {
+      "id": "Atlas_hippocampal",
+      "title": "海马代理网络"
+    },
+    {
+      "id": "Atlas_control_salience_frontal",
+      "title": "额叶/控制代理网络"
+    }
+  ],
+  "excluded": [
+    "outputs",
+    "output",
+    "tmp",
+    "qa/artifacts",
+    "qa screenshots and user projects",
+    "tools/cache",
+    "tools/merfish-python",
+    "tools/mesh_python",
+    "RDS intermediate caches",
+    "old HTML backups",
+    "real NIfTI/H5AD/Excel results"
+  ],
+  "dataChanges": [
+    "Built-in study network datasets removed; visualization code retained",
+    "Local source paths in native/reference provenance replaced by official relative source name; geometric fingerprint unchanged"
+  ],
+  "sourceAppModified": false
+}

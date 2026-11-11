@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>BRAIN_P · Mouse Atlas Studio Beta</title>
+  <style>/* APP_STYLES */</style>
+  <style>/* RESEARCH_DOCK_STYLES */</style>
+  <style>/* NIFTI_STATS_STYLES */</style>
+  <style>/* MRI_ADVANCED_STYLES */</style>
+  <style>/* WORKBENCH_STYLES */</style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark">M</span><div><h1>Mouse Atlas Studio</h1><span>BRAIN_P BETA · ALLEN CCF · 研究用途</span></div></div>
+    <div class="header-actions">
+      <span class="offline-status"><span></span>本地离线</span>
+      <button id="openResearch" class="button secondary">研究工作台</button>
+      <button id="openPublication" class="button secondary">图版编辑器</button>
+      <button id="openNifti" class="button secondary">MRI / 统计 NIfTI</button>
+      <button id="openMRIAdvanced" class="button secondary">MRI 高级展示</button>
+      <button id="importSettings" class="icon-button" title="打开项目 / 旧设置" aria-label="打开项目"><i data-lucide="folder-open"></i></button>
+      <button id="saveSettings" class="icon-button" title="保存完整项目" aria-label="保存项目"><i data-lucide="save"></i></button>
+      <button id="resetSettings" class="icon-button" title="恢复默认设置" aria-label="恢复默认设置"><i data-lucide="rotate-ccw"></i></button>
+      <input id="settingsFile" type="file" accept="application/json,.json" hidden>
+    </div>
+  </header>
+  <div id="errorBanner" class="error-banner" role="alert" hidden></div>
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="渲染设置">
+      <section class="control-section">
+        <h2><i data-lucide="layers-2"></i>切面与片层</h2>
+        <label class="field" for="orientation">切面方向<select id="orientation" aria-label="切面方向"><option value="coronal">冠状面 · Coronal</option><option value="sagittal">矢状面 · Sagittal</option><option value="horizontal">水平面 · Horizontal</option></select></label>
+        <label class="field" for="hemisphere">显示半球<select id="hemisphere" aria-label="显示半球"><option value="B">双侧 · B</option><option value="L">左侧 · L</option><option value="R">右侧 · R</option></select></label>
+        <div class="segmented" role="tablist" aria-label="显示方式"><button id="singleMode" role="tab" aria-selected="false">单片</button><button id="gridMode" role="tab" aria-label="自定义行列展示" aria-selected="true">网格</button><button id="orthoMode" role="tab" aria-selected="false">三视图</button><button id="meshMode" role="tab" aria-selected="false">3D 脑区</button></div>
+        <div id="gridControls" class="grid-controls">
+          <div class="two-fields"><label class="field" for="rows">行数<input id="rows" type="number" min="1" max="8" step="1" value="2"></label><label class="field" for="columns">列数<input id="columns" type="number" min="1" max="8" step="1" value="4"></label></div>
+          <div class="grid-actions"><output id="gridSummary" aria-live="polite">2 行 × 4 列 · 共 8 片</output><button id="uniformSlices" class="button secondary">均匀选片</button></div>
+          <div class="value-rule">每项 1–8；修改行列后自动均匀选片，冠状面默认 AP 2.0–10.4 mm（单片取中点）。点击面板后可单独调节；“均匀选片”恢复默认分布。</div>
+          <div class="spacing-heading">排版图间距</div>
+          <label class="range-field" for="panelGapX"><span class="control-label">横向图间距<output id="panelGapXValue">3.66 mm</output></span><input id="panelGapX" type="range" min="0" max="100" step="1" value="24"></label>
+          <label class="range-field" for="panelGapY"><span class="control-label">纵向图间距<output id="panelGapYValue">3.66 mm</output></span><input id="panelGapY" type="range" min="0" max="100" step="1" value="24"></label>
+          <button id="resetPanelGaps" class="button secondary">恢复默认图间距</button>
+          <div class="value-rule">mm为按当前导出宽度折算的版面留白，不是实际取片间隔。增加横距时会相应缩小单个图；标题保留基本安全留白。</div>
+          <div class="spacing-heading">按实际间隔选片 · <span id="intervalAxis">AP</span></div>
+          <div class="two-fields"><label class="field" for="intervalStart">起始坐标 (mm)<input id="intervalStart" type="number" step="any" value="2"></label><label class="field" for="intervalMm">取片间隔 (mm)<input id="intervalMm" type="number" step="any" min="0.1" value="1.2"></label></div>
+          <button id="applyInterval" class="button secondary">按间隔应用</button>
+          <div id="intervalStatus" class="value-rule" role="status" aria-live="polite"></div>
+          <div class="value-rule">沿当前方向坐标递增，片数=行×列。点击应用才更改片层；吸附现有约0.1 mm片层，不插值。修改行列/方向仍恢复默认均匀选片。</div>
+        </div>
+        <div id="meshControls" hidden>
+          <div class="mesh-view-buttons mesh-standard-views" role="group" aria-label="三维标准视角"><button id="reset3d" class="button secondary">重置视角</button><button id="dorsal3d" class="button secondary" title="从背侧俯视 · Dorsal">背侧</button><button id="ventral3d" class="button secondary" title="从腹侧仰视 · Ventral">腹侧</button><button id="anterior3d" class="button secondary" title="从前侧向后看 · Anterior">前侧</button><button id="posterior3d" class="button secondary" title="从后侧向前看 · Posterior">后侧</button><button id="right3d" class="button secondary" title="从小鼠解剖右侧向左看 · Right">右侧</button><button id="left3d" class="button secondary" title="从小鼠解剖左侧向右看 · Left">左侧</button></div>
+          <label class="range-field" for="smoothing3d"><span class="control-label">表面平滑强度<output id="smoothing3dValue">100 · 标准</output></span><input id="smoothing3d" type="range" min="0" max="200" value="100" step="5" aria-describedby="smoothing3dHelp"></label>
+          <div class="mesh-view-buttons"><button id="smoothOff3d" class="button secondary">关闭平滑</button><button id="smoothStandard3d" class="button secondary">标准平滑</button><button id="smoothStrong3d" class="button secondary">增强平滑</button></div>
+          <div id="smoothing3dHelp" class="value-rule">0 原始网格 · 100 标准 · 200 增强。只影响三维显示，不改变脑区赋值与统计；较强平滑会弱化细小结构。</div>
+          <label class="range-field" for="shellOpacity"><span class="control-label">背景脑壳不透明度<output id="shellOpacityValue">8%</output></span><input id="shellOpacity" type="range" min="0" max="40" value="8" step="2"></label>
+          <label class="field" for="coordinateMode">坐标辅助显示<select id="coordinateMode" aria-label="坐标辅助显示"><option value="none">关闭 · 仅脑区</option><option value="axes">坐标轴</option><option value="planes">切面位置</option><option value="both">坐标轴 + 切面</option></select></label>
+          <div id="planeChoices" class="plane-choices" hidden><label><input id="planeAP" type="checkbox" checked>AP 冠状</label><label><input id="planeML" type="checkbox" checked>ML 矢状</label><label><input id="planeDV" type="checkbox" checked>DV 水平</label></div>
+          <button id="meshToSlices" class="button secondary">查看选点三视图</button>
+          <div class="value-rule">拖动旋转；滚轮缩放；Shift/右键拖动平移；点击选择脑区并更新共享坐标。脑区透明度使用下方“填充不透明度”。坐标轴 AP+ 向后、ML+ 向右、DV+ 向腹侧；非 bregma。</div>
+        </div>
+        <div id="crosshairControls" hidden><div class="three-fields"><label class="field" for="cursorAP">CCF AP (mm)<input id="cursorAP" type="number" step="0.1"></label><label class="field" for="cursorML">ML (mm)<input id="cursorML" type="number" step="0.1"></label><label class="field" for="cursorDV">CCF DV (mm)<input id="cursorDV" type="number" step="0.1"></label></div><label class="toggle-row" for="showCrosshair"><span>联动十字光标</span><input id="showCrosshair" type="checkbox" role="switch" checked></label><div class="value-rule">点击脑片联动三个切面；坐标吸附至现有 0.1 mm 片层。CCF 坐标不是 bregma。</div></div>
+        <div class="slice-heading"><output id="coordinateDisplay">CCF AP 6.8 mm</output><div class="step-controls"><button id="previousSlice" class="icon-button small" title="上一片" aria-label="上一片"><i data-lucide="chevron-left"></i></button><button id="playSlices" class="icon-button small" title="播放片层" aria-label="播放片层"><i data-lucide="play"></i></button><button id="nextSlice" class="icon-button small" title="下一片" aria-label="下一片"><i data-lucide="chevron-right"></i></button></div></div>
+        <label class="range-field" for="sliceRange"><span class="sr-only">片层</span><input id="sliceRange" type="range" min="0" max="131" value="68" step="1"><span class="range-labels"><span id="sliceMin"></span><span id="sliceMax"></span></span></label>
+        <label class="inline-field" for="positionInput"><span id="positionLabel">AP 坐标 (mm)</span><input id="positionInput" type="number" step="0.1" value="6.8"></label>
+        <div id="sliceChips" class="slice-chips" aria-label="排版片层"></div>
+      </section>
+      <section id="sliceDepthSection" class="control-section">
+        <h2><i data-lucide="box"></i>2D 立体薄片</h2>
+        <label class="toggle-row" for="sliceDepth"><span>开启立体效果</span><input id="sliceDepth" type="checkbox" role="switch"></label>
+        <div id="sliceDepthControls" hidden>
+          <label class="range-field" for="sliceThickness"><span class="control-label">显示厚度<output id="sliceThicknessValue">6</output></span><input id="sliceThickness" type="range" min="0" max="24" step="1" value="6"></label>
+          <label class="range-field" for="sliceShadow"><span class="control-label">阴影强度<output id="sliceShadowValue">20%</output></span><input id="sliceShadow" type="range" min="0" max="45" step="1" value="20"></label>
+          <div id="sliceRotationControls" hidden>
+            <label class="range-field" for="slicePitch"><span class="control-label">上下倾角<output id="slicePitchValue">20°</output></span><input id="slicePitch" type="range" min="-55" max="55" step="1" value="20"></label>
+            <label class="range-field" for="sliceYaw"><span class="control-label">左右转角<output id="sliceYawValue">−18°</output></span><input id="sliceYaw" type="range" min="-55" max="55" step="1" value="-18"></label>
+            <div class="slice-depth-presets"><button id="sliceFront" class="button secondary">正视</button><button id="sliceOblique" class="button secondary">斜视</button></div>
+            <label class="toggle-row" for="sliceRotate"><span>拖动旋转模式</span><input id="sliceRotate" type="checkbox" role="switch"></label>
+          </div>
+          <div id="sliceDepthHint" class="value-rule">网格/三视图保持正视。切换“单片”可调倾角和拖动旋转。厚度是显示参数，不代表真实组织厚度；正面颜色不加光照。</div>
+        </div>
+      </section>
+      <section id="researchQuick" class="control-section">
+        <h2><i data-lucide="microscope"></i>研究数据</h2>
+        <div id="researchSummary" class="value-rule">0 动物 · 0 点 · 0 边</div>
+        <button id="researchOpenQuick" class="button secondary">打开研究工作台</button>
+        <label class="toggle-row" for="researchShowPoints"><span>显示实验点</span><input id="researchShowPoints" type="checkbox" role="switch" checked></label>
+        <label class="toggle-row" for="researchShowEdges"><span>显示连接边</span><input id="researchShowEdges" type="checkbox" role="switch" checked></label>
+        <button id="researchFinishROI" class="button primary" hidden>完成ROI</button><button id="researchCancelROI" class="button secondary" hidden>取消绘制</button>
+      </section>
+      <section class="control-section">
+        <h2><i data-lucide="palette"></i>着色与边线</h2>
+        <label class="field" for="layer">着色图层<select id="layer" aria-label="着色图层"><option value="anatomy">Allen 解剖结构</option><option value="custom">自定义赋值 · 伪彩</option></select></label>
+        <label class="field" id="paletteField" for="palette">解剖配色<select id="palette"><option value="allen">Allen 结构原色</option><option value="family">Allen 分组色</option><option value="gray">灰度</option></select></label>
+        <label class="range-field" for="fillOpacity"><span class="control-label">填充不透明度<output id="opacityValue">100%</output></span><input id="fillOpacity" type="range" min="20" max="100" step="5" value="100"></label>
+        <label class="toggle-row" for="borders"><span>脑区边线</span><input id="borders" type="checkbox" role="switch"></label>
+        <label class="range-field sub-control" for="lineWidth"><span class="control-label">边线粗细<output id="lineWidthValue">0.10 pt</output></span><input id="lineWidth" type="range" min="0.02" max="1.5" step="0.02" value="0.1" disabled></label>
+        <label class="toggle-row" for="outline"><span>外轮廓</span><input id="outline" type="checkbox" role="switch"></label>
+        <label class="range-field sub-control" for="outlineWidth"><span class="control-label">轮廓粗细<output id="outlineWidthValue">0.40 pt</output></span><input id="outlineWidth" type="range" min="0.05" max="2" step="0.05" value="0.4" disabled></label>
+        <label class="inline-field" for="lineColour"><span>边线颜色</span><input id="lineColour" type="color" value="#637077"></label>
+      </section>
+      <section class="control-section values-section">
+        <h2><i data-lucide="git-branch"></i>Allen 脑区层级</h2>
+        <label class="field" for="treeSearch">搜索层级<input id="treeSearch" type="search" placeholder="数字 ID、缩写或英文名称"></label>
+        <div id="structureTree" class="structure-tree" aria-label="Allen 脑区层级树"></div>
+        <div id="selectionCount" class="assigned-count"></div>
+        <label class="toggle-row" for="selectionOnly"><span>仅显示选中分区及后代</span><input id="selectionOnly" type="checkbox" role="switch"></label>
+        <button id="clearSelection" class="button secondary">清除选区</button>
+        <div class="value-rule">灰色节点无独立轮廓。当前为 357 结构聚合图谱，不含独立皮层层次轮廓；父区赋值向下继承，不计算子区统计汇总。</div>
+      </section>
+      <section class="control-section values-section">
+        <h2><i data-lucide="list-filter"></i>分区赋值 / 伪彩</h2>
+        <label class="field" for="assignmentTarget">赋值层级<select id="assignmentTarget" aria-label="赋值层级"><option value="region">脑区结构 · 357 个分区</option><option value="family">Allen 大分组</option><option value="tree">Allen 层级节点 · 父区继承</option></select></label>
+        <label class="field" for="assignmentHemisphere">赋值半球<select id="assignmentHemisphere" aria-label="赋值半球"><option value="B">双侧默认 · B</option><option value="L">左侧覆盖 · L</option><option value="R">右侧覆盖 · R</option></select></label>
+        <label class="field" for="regionSearch">查找分区<input id="regionSearch" type="search" placeholder="缩写、英文名称或分组" autocomplete="off"></label>
+        <div id="valueTable" class="value-table" aria-label="分区赋值列表"></div>
+        <div id="assignedCount" class="assigned-count"></div>
+        <div class="value-rule">分区优先于父区/分组；同一层级的单侧值优先于双侧值。空值继承，未赋值显示灰色。</div>
+        <div class="value-actions"><button id="importValues" class="button secondary"><i data-lucide="upload"></i>导入 CSV</button><button id="downloadTemplate" class="button secondary"><i data-lucide="file-down"></i>下载模板</button><button id="exportValues" class="button secondary"><i data-lucide="download"></i>导出赋值</button><button id="applyValues" class="button primary"><i data-lucide="paintbrush"></i>显示伪彩</button></div>
+        <input id="valuesFile" type="file" accept=".csv,text/csv" hidden>
+        <div id="valueStatus" class="value-status" role="status" aria-live="polite"></div>
+        <label class="field" for="customMap">伪彩色带<select id="customMap" aria-label="伪彩色带"><option value="viridis">Viridis · 紫—绿—黄</option><option value="teal">青绿 · 低值浅灰</option><option value="diverging">蓝—白—红 · 双向</option><option value="inferno">Inferno · 黑—红—黄</option></select></label>
+        <label class="toggle-row" for="autoRange" title="全图谱已赋值数据范围；随显示半球调整，但不随显著性阈值改变"><span>自动色阶范围</span><input id="autoRange" type="checkbox" role="switch" checked></label>
+        <label class="toggle-row" for="symmetricRange"><span>以零为中心的对称色阶</span><input id="symmetricRange" type="checkbox" role="switch"></label>
+        <div class="two-fields"><label class="field" for="valueMin">色阶下限<input id="valueMin" type="number" step="any" value="0" disabled></label><label class="field" for="valueMax">色阶上限<input id="valueMax" type="number" step="any" value="1" disabled></label></div>
+        <label class="field" for="valueTitle">数值标题<input id="valueTitle" type="text" value="Value" maxlength="64"></label>
+        <div class="two-fields"><label class="field" for="valueKind">数值类型<select id="valueKind"><option value="value">原始数值</option><option value="effect">效应量</option><option value="t">t 值</option><option value="z">z 值</option></select></label><label class="field" for="valueUnit">数值单位<input id="valueUnit" type="text" maxlength="32" placeholder="如 cells/mm³"></label></div>
+        <label class="field" for="statFilter">显示阈值<select id="statFilter" aria-label="显示阈值"><option value="none">不筛选</option><option value="value">|value| ≥ 阈值</option><option value="p">p ≤ 阈值（已导入）</option><option value="q">q ≤ 阈值（已导入）</option></select></label>
+        <div class="two-fields"><label class="field" for="absoluteThreshold">绝对值阈值<input id="absoluteThreshold" type="number" min="0" step="any" value="0"></label><label class="field" for="statThreshold">p/q 阈值<input id="statThreshold" type="number" min="0" max="1" step="0.01" value="0.05"></label></div>
+        <div id="statisticsStatus" class="value-rule">CSV 可附加 hemisphere、p、q、n 列。“导出赋值”保存当前层级全部半球的显式赋值，不展开继承。软件不执行显著性检验或 FDR 计算；缺失相应 p/q 的分区不显示数值配色。</div>
+        <label class="inline-field" for="missingColour"><span>未赋值颜色</span><input id="missingColour" type="color" value="#e0e3e4"></label>
+      </section>
+      <section class="control-section" id="colorbarSection">
+        <h2><i data-lucide="rainbow"></i>色条编辑器</h2>
+        <div id="colorbarEditor"></div>
+        <div class="value-rule">反转与分级同时改变脑区映射；单位覆盖仅改显示标签，不进行单位换算。色条放在独立边缘区域，避免压住脑片。</div>
+      </section>
+      <section class="control-section">
+        <h2><i data-lucide="folder-cog"></i>项目与来源</h2>
+        <label class="field" for="projectName">项目名称<input id="projectName" type="text" maxlength="100" value="Mouse Atlas Project"></label>
+        <label class="field" for="projectSource">数据来源 / 方法<input id="projectSource" type="text" maxlength="300" placeholder="数据来源、处理方法或统计软件"></label>
+        <label class="field" for="projectNotes">项目备注<textarea id="projectNotes" rows="3" maxlength="4000" placeholder="样本、单位、统计模型、FDR 方法等"></textarea></label>
+        <div id="projectStatus" class="value-status" role="status">上方文件夹打开项目，保存按钮保存完整项目 JSON。</div>
+        <div id="projectSummary" class="value-rule"></div>
+      </section>
+      <section class="control-section">
+        <h2><i data-lucide="sliders-horizontal"></i>画布与导出</h2>
+        <label class="field" for="publicationPreset">出版尺寸预设<select id="publicationPreset"><option value="89">单栏 · 89 mm</option><option value="183" selected>双栏 · 183 mm</option></select></label><button id="applyPublication" class="button secondary">应用标准出版风格</button><label class="toggle-row" for="publicationStyle"><span>简洁出版版式</span><input id="publicationStyle" type="checkbox" role="switch"></label><p class="value-rule">Arial，7 pt 标签/色条，600 dpi，正视、白底、无装饰阴影；保留真实比例尺与来源 metadata。可再切透明背景。通用预设，投稿时按期刊规范调整。</p>
+        <label class="toggle-row" for="transparent"><span>透明背景</span><input id="transparent" type="checkbox" role="switch" checked></label>
+        <label class="inline-field" for="background"><span>背景颜色</span><input id="background" type="color" value="#ffffff" disabled></label>
+        <label class="toggle-row" for="showLabels"><span>切面坐标标注</span><input id="showLabels" type="checkbox" role="switch" checked></label>
+        <label class="toggle-row" for="showRegionNames"><span>分区名称标签</span><input id="showRegionNames" type="checkbox" role="switch" checked></label>
+        <label class="field" for="regionNameFormat">名称格式<select id="regionNameFormat" aria-label="名称格式"><option value="acronym">Allen 缩写</option><option value="full">英文全称</option></select></label>
+        <label class="field" for="regionNameDensity">标签密度<select id="regionNameDensity" aria-label="标签密度"><option value="sparse">精简 · 优先大脑区</option><option value="dense">较密 · 自动避让</option></select></label>
+        <label class="range-field" for="regionNameSize"><span class="control-label">标签字号<output id="regionNameSizeValue">4.5 pt</output></span><input id="regionNameSize" type="range" min="3" max="9" step="0.5" value="4.5"></label>
+        <label class="toggle-row" for="showScale"><span>1 mm 比例尺</span><input id="showScale" type="checkbox" role="switch" checked></label>
+        <div class="two-fields"><label class="field" for="paperWidth">宽度 (mm)<input id="paperWidth" type="number" min="80" max="400" step="1" value="183"></label><label class="field" for="dpi">位图 / PDF 影像分辨率<select id="dpi"><option value="150">150 dpi</option><option value="300" selected>300 dpi</option><option value="600">600 dpi</option></select></label></div>
+        <div class="export-actions"><button id="exportSVG" class="button secondary"><i data-lucide="file-code-2"></i>导出 SVG</button><button id="exportPNG" class="button primary"><i data-lucide="download"></i>导出 PNG</button></div>
+        <div class="export-actions"><button id="exportPDF" class="button secondary">导出 PDF</button><button id="exportTIFF" class="button secondary">导出 TIFF</button></div>
+        <p class="value-rule">PDF 保留二维路径与普通文字；3D / 影像、阴影和带描边的文字按所选 DPI 嵌入位图。中文内嵌 Noto Sans SC。TIFF 为 8-bit RGB / 透明 RGBA，含 DPI，不是定量体数据。</p>
+        <div id="publicationCheck" class="value-rule" role="status"></div><div id="exportStatus" class="export-status" role="status" aria-live="polite"></div>
+      </section>
+      <div class="source-note"><span>ALLEN CCF 2020 · 20230630</span><span>原始轮廓 10 μm · 浏览间隔 0.1 mm</span><span>AP / DV 为 CCF 体积坐标</span></div>
+    </aside>
+    <main class="workspace">
+      <div class="viewer-toolbar"><div><h2 id="viewTitle">冠状面</h2><span id="datasetCount">正在载入图谱</span></div><label class="zoom-control" for="zoom"><i data-lucide="zoom-in"></i><input id="zoom" type="range" min="60" max="160" step="10" value="100"><output id="zoomValue">100%</output></label></div>
+      <div id="viewerScroll" class="viewer-scroll"><div id="paper" class="paper checker"><div id="loading" class="loading" role="status"><span class="spinner"></span>正在准备图谱…</div><div id="figure" aria-label="脑图谱预览"></div><div id="meshPanel" class="mesh-panel" hidden><div class="mesh-heading"><strong>Allen CCF · 3D region surfaces</strong><span id="meshNote">100 μm 抽样显示网格，非定量分割</span></div><div id="meshStage" class="mesh-stage"></div><div id="meshLegend" class="mesh-legend"></div><div id="meshStatus" class="mesh-status" role="status"></div></div></div></div>
+      <div class="inspector" aria-live="polite"><div><span>脑区</span><strong id="regionName">—</strong></div><div><span>Allen 分组</span><strong id="regionFamily">—</strong></div><div><span id="regionValueLabel">当前片层脑区数</span><strong id="regionValue">—</strong></div></div>
+      <div id="cursorStatus" class="cursor-status" hidden></div>
+      <footer class="workspace-footer"><span id="coordinateNote">CCF AP：距体积前缘的距离</span><span id="renderStatus">准备中</span></footer>
+    </main>
+  </div>
+  <script>/* LUCIDE_VENDOR */</script>
+  <script>/* CSV_VENDOR */</script>
+  <script>/* THREE_VENDOR */</script>
+  <script>/* JSPDF_VENDOR */</script>
+  <script>/* SVG2PDF_VENDOR */</script>
+  <script>/* EXPORT_FONTS */</script>
+  <script>/* ATLAS_DATA */</script>
+  <script>/* MESH_DATA */</script>
+  <script>/* RESEARCH_REFERENCE */</script>
+  <script>/* APP_UTILS */</script>
+  <script>/* FIGURE_EXPORT */</script>
+  <script>/* PUBLICATION_PALETTES */</script>
+  <script>/* CUSTOM_VALUES */</script>
+  <script>/* PROFESSIONAL */</script>
+  <script>/* COLORBAR */</script>
+  <script>/* MESH_VIEWER */</script>
+  <script>/* SLICE_DEPTH */</script>
+  <script>/* RESEARCH_CORE */</script>
+  <script>/* RESEARCH_VOLUME */</script>
+  <script>/* NIFTI_STATS_CORE */</script>
+  <script>/* NIFTI_TEMPLATE_SMOOTHING */</script>
+  <script>/* CONNECTOME_CORE */</script>
+  <script>/* CONNECTOME_UI */</script>
+  <script>/* IMPLANTS */</script>
+  <script>/* IMPLANT_PUBLICATION */</script>
+  <script>/* MERFISH_REGIONS */</script>
+  <script>/* MERFISH_CORE */</script>
+  <script>/* MERFISH_UI */</script>
+  <script>/* AAV_CORE */</script>
+  <script>/* AAV_RASTER */</script>
+  <script>/* AAV_UI */</script>
+  <script>/* RESEARCH_UI */</script>
+  <script>/* PUBLICATION_ANNOTATIONS */</script>
+  <script>/* PUBLICATION_CORE */</script>
+  <script>/* PUBLICATION_UI */</script>
+  <script>/* COMPARISON_CORE */</script>
+  <script>/* COMPARISON_RENDERER */</script>
+  <script>/* COMPARISON_UI */</script>
+  <script>/* NIFTI_STATS_UI */</script>
+  <script>/* NIIVUE_VENDOR */</script>
+  <script>/* MRI_FIGURE */</script>
+  <script>/* MRI_ADVANCED_CORE */</script>
+  <script>/* MRI_ADVANCED_UI */</script>
+  <script>/* APP_SCRIPT */</script>
+  <script>/* WORKBENCH_UI */</script>
+</body>
+</html>

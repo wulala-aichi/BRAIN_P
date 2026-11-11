@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "Please cite BRAIN_P and the original atlas/data/software resources actually used."
+title: "BRAIN_P: Mouse Atlas Studio"
+type: software
+authors:
+  - name: "wulala-aichi"
+repository-code: "https://github.com/wulala-aichi/BRAIN_P"
+url: "https://github.com/wulala-aichi/BRAIN_P"
+license: MIT
+version: "3.20.0-beta.1"
+abstract: "Local-first mouse atlas and NIfTI research visualization. Third-party data have separate terms; see DATA_LICENSES.md."

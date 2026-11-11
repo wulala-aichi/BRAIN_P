@@ -1,0 +1,16 @@
+import fs from 'node:fs/promises';import vm from 'node:vm';import assert from 'node:assert/strict';import {gzipSync} from 'node:zlib';
+const ctx={window:{},Blob,Response,DecompressionStream,TextDecoder,TextEncoder,Uint8Array,DataView,structuredClone,console,setTimeout};
+for(const file of ['src/research-core.js','src/research-volume.js','src/nifti-stats-core.js'])vm.runInNewContext(await fs.readFile(new URL('../'+file,import.meta.url),'utf8'),ctx);
+const V=ctx.window.AtlasResearchVolume,C=ctx.window.AtlasNiftiStatsCore;
+function fixture(dimension=4,le=true,afni=false){
+  const xml=afni?'<AFNI_attributes><AFNI_atr atr_name="BRICK_LABS">"mean~test_Z~third~"</AFNI_atr><AFNI_atr atr_name="BRICK_STATAUX">1 5 0</AFNI_atr></AFNI_attributes>':'',payload=new TextEncoder().encode(xml),size=afni?Math.ceil((8+payload.length)/16)*16:0,offset=352+size;
+  const b=new Uint8Array(offset+8*3*4),v=new DataView(b.buffer);v.setInt32(0,348,le);v.setInt16(40,dimension,le);for(let i=1;i<=7;i++)v.setInt16(40+i*2,i<=3?2:i===dimension?3:1,le);v.setInt16(68,afni?0:3,le);v.setFloat32(56,17,le);v.setInt16(70,16,le);v.setInt16(72,32,le);v.setFloat32(108,offset,le);v.setFloat32(112,2,le);v.setFloat32(116,-1,le);v.setInt16(254,1,le);b[123]=2;b.set([110,43,49,0],344);for(let i=0;i<3;i++)v.setFloat32(280+i*16+i*4,.6,le);
+  if(afni){b[348]=1;v.setInt32(352,size,le);v.setInt32(356,4,le);b.set(payload,360);}for(let i=0;i<24;i++)v.setFloat32(offset+i*4,i,le);return b;
+}
+for(const dimension of [4,5,6,7])for(const le of [true,false]){
+  const bytes=fixture(dimension,le),a=await V.read(bytes,{selectFrame:true}),b=V.selectFrame(a,2);C.validateVolume(b);assert.equal(a.series.count,3);assert.equal(b.series.index,2);assert.equal(b.values[0],31);assert.equal(b.values[7],45);assert.equal(b.intent.code,3);assert.equal(b.intent.params[0],17);assert.equal(b.frames,1);assert.equal(b.higherDims.join(','),'1,1,1');assert.equal(b.series.dimensions[dimension-4],3);assert.equal(a.values[0],-1);assert.equal(V.selectFrame(await V.read(bytes),1).values[0],15);
+  const gz=await V.read(gzipSync(bytes),{frameIndex:1});assert.equal(gz.values[0],15);assert.throws(()=>V.selectFrame(a,3),/索引/);assert.throws(()=>V.selectFrame(a,-1),/索引/);await assert.rejects(V.read(bytes.subarray(0,bytes.length-1),{selectFrame:true}),/截断/);
+}
+const afni=await V.read(fixture(5,true,true),{selectFrame:true});assert.equal(afni.series.volumes[1].label,'test_Z');assert.equal(C.infer(afni),'value');assert.equal(C.infer(V.selectFrame(afni,1)),'z');assert.equal(C.infer(V.selectFrame(afni,2)),'value');assert.equal(afni.series.count,3);
+const realPath=process.argv[2];if(realPath){const original=new Uint8Array(await fs.readFile(realPath)),group=await V.read(original,{frameIndex:1,maxVoxels:32000000});assert.equal(group.series.count,6);assert.equal(group.series.label,'lig-con_Zscr');assert.equal(group.intent.code,5);C.validateVolume(group);const derived=await V.read(new Uint8Array(await fs.readFile(new URL('../outputs/real_nifti_20261023/lig-con_Zscr.nii',import.meta.url))));assert.equal(Buffer.compare(Buffer.from(group.values.buffer),Buffer.from(derived.values.buffer)),0);console.log('Real AFNI sub-brick matches previously extracted Z voxel values exactly');}
+console.log('Multi-volume: 4D–7D, endian, gzip, scaling, frame bounds, truncation, AFNI labels/types and legacy reader compatibility PASS');

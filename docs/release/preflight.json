@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "files": 157,
+  "bytes": 83573201,
+  "flags": [],
+  "networkPresetsExcluded": true,
+  "privateStudyOutputsIncluded": false,
+  "scanning": "Final allowlisted text scan; not a security certification"
+}

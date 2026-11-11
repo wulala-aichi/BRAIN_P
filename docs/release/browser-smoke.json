@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "source": "Synthetic ellipsoidal phantom; no animal data",
+  "statistic": "arbitrary raw values; not inferential Z",
+  "retainedVoxels": 296,
+  "clusters": 2,
+  "rawThreshold": 2.3,
+  "inputBytesUnmodified": true,
+  "storageNamespaceIsolated": true
+}

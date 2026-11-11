@@ -1,0 +1,17 @@
+.nifti-dialog{width:calc(100vw - 36px);height:calc(100vh - 36px);max-width:1700px;max-height:none;border:1px solid #cbd5ce;border-radius:14px;padding:0;background:#f5f7f5;color:#233c30}
+.nifti-dialog::backdrop{background:#15271ec4}
+.nifti-head{display:flex;align-items:center;gap:18px;justify-content:space-between;padding:12px 18px;background:white;border-bottom:1px solid #d6dfd8}
+.nifti-head h2{margin:0;font-size:19px}.nifti-head p{font-size:12px;margin:4px 0;color:#5d7165}
+.nifti-body{height:calc(100% - 78px);display:grid;grid-template-columns:320px minmax(0,1fr);min-height:0}
+.nifti-controls{overflow:auto;padding:12px 16px;background:white;border-right:1px solid #d6dfd8}
+.nifti-controls details{padding:10px 0;border-bottom:1px solid #e1e7e2}.nifti-controls summary{cursor:pointer;font-size:14px;font-weight:700;margin-bottom:10px}
+.nifti-controls .field{display:flex;flex-direction:column;gap:4px;margin:9px 0;font-size:12px}.nifti-controls input,.nifti-controls select{min-width:0;width:100%;box-sizing:border-box;padding:6px 8px}
+.nifti-controls input[type=checkbox]{width:auto}.nifti-controls .toggle-row{font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin:9px 0}
+.nifti-controls .two-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}.nifti-controls button{margin:4px 3px 4px 0}
+.nifti-note{font-size:11px;line-height:1.65;color:#677b6d;overflow-wrap:anywhere}.nifti-warning{background:#fff7de;border:1px solid #ecdaa4;padding:8px;border-radius:6px;color:#755c19}
+.nifti-work{overflow:auto;padding:18px;min-width:0}.nifti-status{font-size:12px;padding:10px 12px;background:#e9f1eb;border-radius:8px;line-height:1.7;white-space:pre-line;margin-bottom:12px;overflow-wrap:anywhere}
+.nifti-status[data-error=true]{background:#fbe9e6;color:#9a3126}.nifti-stage{background:repeating-conic-gradient(#e5e9e6 0% 25%,#f3f5f3 0% 50%) 50%/16px 16px;border:1px solid #dce3dd;border-radius:8px;min-height:210px;display:flex;align-items:center;justify-content:center;padding:12px}
+.nifti-stage>svg{display:block;width:100%;height:auto;max-height:65vh}.nifti-empty{padding:70px 10px;text-align:center;color:#64796a;font-size:14px}.nifti-results{margin-top:14px;background:white;padding:12px;border-radius:8px}.nifti-results h3{font-size:14px;margin:0 0 6px}
+.nifti-results .table-wrap{overflow:auto;max-height:280px}.nifti-results table{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap}.nifti-results th,.nifti-results td{padding:7px 9px;border-bottom:1px solid #e4eae5;text-align:right}.nifti-results tbody tr{cursor:pointer}.nifti-results tbody tr:hover{background:#edf5ef}
+.nifti-controls [hidden]{display:none!important}.nifti-export-row{display:flex;flex-wrap:wrap}.nifti-progress{width:100%;height:5px;margin-bottom:10px;accent-color:#3c7a56}
+@media(max-width:850px){.nifti-body{grid-template-columns:260px minmax(0,1fr)}.nifti-controls{padding:10px}.nifti-work{padding:10px}.nifti-head p{display:none}}

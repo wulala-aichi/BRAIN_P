@@ -1,0 +1,1 @@
+SYNTHETIC DEMONSTRATION ONLY. Ellipsoidal phantom, not a mouse anatomical template. Statistic values are arbitrary; select raw-value display, not inferential p-values. Regional CSV includes both a real zero and missing NA.

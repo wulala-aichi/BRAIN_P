@@ -1,0 +1,45 @@
+/* Research parameters and the live figure are separate layout areas, never overlays. */
+.app-layout.research-docked{grid-template-columns:minmax(360px,430px) minmax(0,1fr)}
+.app-layout.research-docked>.sidebar{display:none}
+.app-layout.research-docked>.workspace{grid-column:2;grid-row:1}
+.app-layout>#researchDialog{position:static;inset:auto;margin:0;width:auto;max-width:none;height:calc(100vh - 68px);max-height:none;padding:0;border:0;border-right:1px solid var(--line);border-radius:0;box-shadow:none;grid-column:1;grid-row:1;min-width:0;overflow:hidden;background:#fff}
+.app-layout>#researchDialog::backdrop{background:none}
+#researchDialog .research-header{padding:12px 16px;height:72px;gap:8px}
+#researchDialog .research-header .button{font-size:11px;flex:none;min-height:30px}
+#researchDialog .research-layout{display:flex;flex-direction:column;height:calc(100% - 72px)}
+#researchDialog #rNav{display:flex;flex-wrap:nowrap;overflow:auto;padding:7px 8px;white-space:nowrap;border-right:0;border-bottom:1px solid var(--line);flex:none}
+#researchDialog #rNav button{width:auto;flex:none;display:inline-block;padding:8px 10px;margin:0 3px 0 0;font-size:11px}
+#researchDialog .research-content{padding:14px 16px 32px;min-height:0;flex:1;overflow:auto}
+#researchDialog .research-form{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#researchDialog .research-content h2{font-size:16px;line-height:1.5}
+#researchDialog .research-content h3{font-size:13px}
+#researchDialog .research-content p{font-size:11px;overflow-wrap:anywhere}
+#researchDialog .research-actions .button{font-size:10px;padding:6px 8px;min-height:30px}
+#researchDialog details>summary{font-size:12px;font-weight:600;color:#315e4b;cursor:pointer;padding:10px 0}
+.glass-region-controls{padding:0 0 14px;margin:10px 0 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.glass-region-list{max-height:185px;overflow:auto;margin:8px 0;border:1px solid var(--line);border-radius:4px;padding:6px 8px}
+.glass-region-list .research-check{display:flex;margin:4px 0;font-size:10px;line-height:1.5;overflow-wrap:anywhere;align-items:flex-start}
+.glass-region-list .research-check input{margin-top:1px}
+.glass-region-swatch{display:inline-block;width:10px;height:12px;flex:none;margin-top:2px;border:1px solid #0002}
+#mfDatasets{display:grid;gap:4px}#mfDatasets .research-check{margin:3px 0}#mfLegendPreview{padding:8px 10px;background:#f5f8f5;border:1px solid var(--line);border-radius:4px;margin:12px 0}#mfLegendPreview:empty{display:none}#mfRoot{overflow-wrap:anywhere}
+.research-docked .viewer-scroll{padding:18px}
+@media(max-width:1000px) and (min-width:761px){.app-layout.research-docked{grid-template-columns:350px minmax(0,1fr)}.research-docked .viewer-scroll{padding:10px}.research-docked .viewer-toolbar{padding:0 10px}.research-docked .viewer-toolbar h2{white-space:normal}.research-docked .zoom-control{gap:4px}}
+@media(max-width:760px){
+  .app-layout.research-docked{display:flex;flex-direction:column;height:calc(100vh - 66px);min-height:0;overflow:hidden}
+  .app-layout.research-docked>.workspace{order:0;min-height:0;height:45vh;overflow:hidden;flex:none;position:static}
+  .research-docked .viewer-scroll{overflow:auto;flex:1;min-height:0;padding:10px}
+  .research-docked .viewer-toolbar{min-height:44px;height:44px;flex:none}
+  .research-docked .viewer-toolbar>div{gap:4px}
+  .research-docked .viewer-toolbar h2{font-size:11px}
+  .research-docked .viewer-toolbar span{display:none}
+  .research-docked .workspace-footer{padding:5px 10px}
+  .research-docked .inspector{min-height:45px;padding:7px 10px;gap:7px}
+  .research-docked .inspector strong{font-size:10px}
+  .research-docked .mesh-stage{height:26vh;min-height:160px;max-height:none}
+  .research-docked .mesh-heading,.research-docked .mesh-status,.research-docked .mesh-legend{display:none}
+  .research-docked .paper{min-width:0}
+  .app-layout>#researchDialog{order:1;width:100%;height:auto;min-height:0;border-right:0;border-top:1px solid var(--line);flex:1}
+  #researchDialog .research-header{height:64px;padding:10px 14px}
+  #researchDialog .research-layout{height:calc(100% - 64px)}
+  #researchDialog .research-content{padding:12px 14px 28px}
+}
